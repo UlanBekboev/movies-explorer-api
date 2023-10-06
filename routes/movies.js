@@ -1,18 +1,18 @@
 /* eslint-disable import/no-extraneous-dependencies */
 const router = require('express').Router();
 const {
-  createCardValidation,
-  cardIdValidation,
+  createFilmValidation,
+  filmIdValidation,
 } = require('../middlewares/validations');
 
 const {
-  createMovie, getMovies, deleteMovie,
+  addMovie, getMovies, deleteMovie,
 } = require('../controllers/movies');
 
-router.get('/', getMovies);
+router.get('/movies', getMovies);
 
-router.post('/', createCardValidation, createMovie);
+router.post('/movies', createFilmValidation, addMovie);
 
-router.delete('/:id', cardIdValidation, deleteMovie);
+router.delete('/movies/:movieId', filmIdValidation, deleteMovie);
 
 module.exports = router;

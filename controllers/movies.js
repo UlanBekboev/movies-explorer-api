@@ -6,17 +6,49 @@ const NotFoundError = require('../errors/not-found-err');
 
 const Movie = require('../models/movies');
 
-module.exports.getMovies = (req, res, next) => {
-  Movie.find({})
-    .then((cards) => res.status(OK_STATUS).send(cards))
-    .catch(next);
+module.exports.getMovies = async (req, res, next) => {
+  const owner = req.user._id;
+  try {
+    const movies = await Movie.find({ owner });
+    if (!movies || movies.length === 0) {
+      res.send('Сохраненных фильмов не найдено.');
+    }
+    return res.status(OK_STATUS).send(movies);
+  } catch (err) {
+    return next(err);
+  }
 };
 
-module.exports.createMovie = (req, res, next) => {
-  const { name, link } = req.body;
+module.exports.addMovie = (req, res, next) => {
+  const {
+    country,
+    director,
+    duration,
+    year,
+    description,
+    image,
+    trailerLink,
+    nameRU,
+    nameEN,
+    thumbnail,
+    movieId,
+  } = req.body;
 
-  Movie.create({ name, link, owner: req.user._id })
-    .then((card) => res.status(CREATED_STATUS).send(card))
+  Movie.create({
+    country,
+    director,
+    duration,
+    year,
+    description,
+    image,
+    trailerLink,
+    nameRU,
+    nameEN,
+    thumbnail,
+    movieId,
+    owner: req.user._id,
+  })
+    .then((movie) => res.status(CREATED_STATUS).send(movie))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         return next(new BadRequestError('Переданы неверные данные.'));
@@ -26,53 +58,21 @@ module.exports.createMovie = (req, res, next) => {
 };
 // eslint-disable-next-line
 module.exports.deleteMovie = async (req, res, next) => {
-  const { id } = req.params;
+  const { movieId } = req.params;
   const { _id } = req.user;
 
   try {
-    const card = await Movie.findById(id);
-    if (!card) {
+    const movie = await Movie.findById(movieId);
+    if (!movie) {
       return next(new NotFoundError('Карточка не найдена.'));
     }
-    if (card.owner.valueOf() !== _id) {
+    if (movie.owner.valueOf() !== _id) {
       return next(new ForbiddenError('Нельзя удалить чужую карточку!'));
     }
-    await card.deleteOne();
+    await movie.deleteOne();
 
     res.status(OK_STATUS).send({ message: 'Карточка успешно удалена.' });
   } catch (err) {
     next(err);
   }
-};
-
-module.exports.likeCard = (req, res, next) => {
-  Movie.findByIdAndUpdate(
-    req.params.id,
-    { $addToSet: { likes: req.user._id } },
-    { new: true },
-  )
-    .then((card) => {
-      if (!card) {
-        return next(new NotFoundError('Карточка не найдена.'));
-      }
-      return res.status(200).send(card);
-    })
-    .catch(next);
-};
-
-module.exports.dislikeCard = (req, res, next) => {
-  Movie.findByIdAndUpdate(
-    req.params.id,
-    { $pull: { likes: req.user._id } },
-    { new: true },
-  )
-    .then((card) => {
-      if (!card) {
-        return next(
-          new NotFoundError('Карточка не найдена. Лайк не удалось убрать.'),
-        );
-      }
-      return res.status(OK_STATUS).send(card);
-    })
-    .catch(next);
 };

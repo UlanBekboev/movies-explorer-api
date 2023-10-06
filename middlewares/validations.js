@@ -37,18 +37,7 @@ const updateUserValidation = celebrate({
   }),
 });
 
-const updateAvatarValidation = celebrate({
-  body: Joi.object().keys({
-    avatar: Joi.string().custom((value) => {
-      if (!validator.isURL(value, { require_protocol: true })) {
-        throw new BadRequestError('Неправильный формат URL адреса');
-      }
-      return value;
-    }),
-  }),
-});
-
-const createCardValidation = celebrate({
+const createFilmValidation = celebrate({
   body: Joi.object().keys({
     name: Joi.string().required().min(2).max(30),
     link: Joi.string().required().custom((value) => {
@@ -60,7 +49,7 @@ const createCardValidation = celebrate({
   }),
 });
 
-const cardIdValidation = celebrate({
+const filmIdValidation = celebrate({
   params: Joi.object().keys({
     id: Joi.string().required().length(24).hex(),
   }),
@@ -71,7 +60,6 @@ module.exports = {
   signIn,
   userIdValidation,
   updateUserValidation,
-  updateAvatarValidation,
-  createCardValidation,
-  cardIdValidation,
+  createFilmValidation,
+  filmIdValidation,
 };

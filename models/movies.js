@@ -1,5 +1,6 @@
 /* eslint-disable import/no-extraneous-dependencies */
 const mongoose = require('mongoose');
+const validator = require('validator');
 
 const movieSchema = new mongoose.Schema(
   {
@@ -26,14 +27,26 @@ const movieSchema = new mongoose.Schema(
     image: {
       type: String,
       required: true,
+      validate: {
+        validator: (v) => validator.isURL(v),
+        message: 'Некорректный URL',
+      },
     },
     trailerLink: {
       type: String,
       required: true,
+      validate: {
+        validator: (v) => validator.isURL(v),
+        message: 'Некорректный URL',
+      },
     },
     thumbnail: {
       type: String,
       required: true,
+      validate: {
+        validator: (v) => validator.isURL(v),
+        message: 'Некорректный URL',
+      },
     },
     owner: {
       type: mongoose.Schema.Types.ObjectId,

@@ -60,66 +60,37 @@ module.exports.login = (req, res, next) => {
     .catch(next);
 };
 
-module.exports.getUsers = (req, res, next) => {
-  User.find({})
-    .then((users) => res.status(OK_STATUS).send(users))
-    .catch(next);
-};
-
-module.exports.getUser = (req, res, next) => {
-  const { id } = req.params;
-
-  User.findById(id)
-    .then((user) => {
-      if (!user) {
-        return next(new NotFoundError('Пользователь не найден'));
-      }
-      return res.status(OK_STATUS).send(user);
-    })
-    .catch(next);
-};
-
-module.exports.updateAvatar = (req, res, next) => {
-  const { avatar } = req.body;
-  User.findByIdAndUpdate(
-    req.user.id,
-    { avatar },
-    { new: true, runValidators: true },
-  )
-    .then((user) => res.status(200).send(user))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        return next(new BadRequestError('Неверная ссылка'));
-      }
-      return next(err);
+module.exports.getUser = async (req, res, next) => {
+  try {
+    const { _id } = req.user;
+    const currentUser = await User.findById(_id);
+    if (!currentUser) {
+      return next(new NotFoundError('Пользователь не найден.'));
+    }
+    return res.status(200).send({
+      name: currentUser.name,
+      email: currentUser.email,
     });
+  } catch (err) {
+    return next(err);
+  }
 };
 
 module.exports.updateUser = (req, res, next) => {
-  const { name, about } = req.body;
+  const { name, email } = req.body;
   User.findByIdAndUpdate(
     req.user.id,
-    { name, about },
+    { name, email },
     { new: true, runValidators: true },
   )
-    .then((user) => res.status(OK_STATUS).send(user))
+    .then((user) => res.status(OK_STATUS).send({
+      name: user.name,
+      email: user.email,
+    }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         return next(new BadRequestError('Неверный тип данных.'));
       }
       return next(err);
     });
-};
-
-module.exports.getProfile = (req, res, next) => {
-  const { _id } = req.user;
-
-  User.findById(_id)
-    .then((user) => {
-      if (!user) {
-        return next(new NotFoundError('Нет пользователя с таким id'));
-      }
-      return res.status(OK_STATUS).send(user);
-    })
-    .catch(next);
 };
