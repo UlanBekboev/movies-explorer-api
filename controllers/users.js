@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 /* eslint-disable import/no-extraneous-dependencies */
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -12,21 +13,21 @@ const ConflictError = require('../errors/conflict-err');
 
 module.exports.createUser = async (req, res, next) => {
   const {
-    email, password, name,
+    name, email, password,
   } = req.body;
 
   try {
     const hash = await bcrypt.hash(password, 10);
     const createdUser = await User.create({
+      name,
       email,
       password: hash,
-      name,
     });
 
     res.status(CREATED_STATUS).send({
       name: createdUser.name,
-      _id: createdUser.id,
       email: createdUser.email,
+      _id: createdUser._id,
     });
   } catch (err) {
     if (err.code === 11000) {
@@ -42,7 +43,8 @@ module.exports.login = (req, res, next) => {
 
   return User.findUserByCredentials(email, password)
     .then((user) => {
-      const token = jwt.sign({ _id: user.id }, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret', {
+      // eslint-disable-next-line no-underscore-dangle
+      const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret', {
         expiresIn: '7d',
       });
       res
@@ -52,9 +54,10 @@ module.exports.login = (req, res, next) => {
           sameSite: true,
         })
         .send({
-          email: user.email,
-          _id: user.id,
           name: user.name,
+          email: user.email,
+          // eslint-disable-next-line no-underscore-dangle
+          _id: user._id,
         });
     })
     .catch(next);
@@ -63,13 +66,13 @@ module.exports.login = (req, res, next) => {
 module.exports.getUser = async (req, res, next) => {
   try {
     const { _id } = req.user;
-    const currentUser = await User.findById(_id);
-    if (!currentUser) {
+    const user = await User.findById(_id);
+    if (!user) {
       return next(new NotFoundError('Пользователь не найден.'));
     }
     return res.status(200).send({
-      name: currentUser.name,
-      email: currentUser.email,
+      name: user.name,
+      email: user.email,
     });
   } catch (err) {
     return next(err);
@@ -79,7 +82,7 @@ module.exports.getUser = async (req, res, next) => {
 module.exports.updateUser = (req, res, next) => {
   const { name, email } = req.body;
   User.findByIdAndUpdate(
-    req.user.id,
+    req.user._id,
     { name, email },
     { new: true, runValidators: true },
   )

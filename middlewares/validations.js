@@ -5,42 +5,48 @@ const BadRequestError = require('../errors/bad-request-err');
 const signIn = celebrate({
   body: Joi.object().keys({
     email: Joi.string().required().email(),
-    password: Joi.string().required().min(8).max(30),
+    password: Joi.string().required(),
   }),
 });
 
 const signUp = celebrate({
   body: Joi.object().keys({
     email: Joi.string().required().email(),
-    password: Joi.string().required().min(8).max(30),
-    name: Joi.string().min(2).max(30),
-    about: Joi.string().min(2).max(30),
-    avatar: Joi.string().custom((value) => {
-      if (!validator.isURL(value, { require_protocol: true })) {
-        throw new BadRequestError('Неправильный формат URL адреса');
-      }
-      return value;
-    }),
-  }),
-});
-
-const userIdValidation = celebrate({
-  params: Joi.object().keys({
-    id: Joi.string().required().length(24).hex(),
+    password: Joi.string().required(),
+    name: Joi.string().required().min(2).max(30),
   }),
 });
 
 const updateUserValidation = celebrate({
   body: Joi.object().keys({
+    email: Joi.string().required().email(),
     name: Joi.string().required().min(2).max(30),
-    about: Joi.string().required().min(2).max(30),
   }),
 });
 
 const createFilmValidation = celebrate({
   body: Joi.object().keys({
-    name: Joi.string().required().min(2).max(30),
-    link: Joi.string().required().custom((value) => {
+    country: Joi.string().required(),
+    director: Joi.string().required(),
+    duration: Joi.number().required(),
+    year: Joi.string().required(),
+    description: Joi.string().required(),
+    movieId: Joi.number().required(),
+    nameRU: Joi.string().required(),
+    nameEN: Joi.string().required(),
+    image: Joi.string().custom((value) => {
+      if (!validator.isURL(value, { require_protocol: true })) {
+        throw new BadRequestError('Неправильный формат URL адреса');
+      }
+      return value;
+    }),
+    trailerLink: Joi.string().custom((value) => {
+      if (!validator.isURL(value, { require_protocol: true })) {
+        throw new BadRequestError('Неправильный формат URL адреса');
+      }
+      return value;
+    }),
+    thumbnail: Joi.string().custom((value) => {
       if (!validator.isURL(value, { require_protocol: true })) {
         throw new BadRequestError('Неправильный формат URL адреса');
       }
@@ -51,14 +57,13 @@ const createFilmValidation = celebrate({
 
 const filmIdValidation = celebrate({
   params: Joi.object().keys({
-    id: Joi.string().required().length(24).hex(),
+    movieId: Joi.string().required().length(24).hex(),
   }),
 });
 
 module.exports = {
   signUp,
   signIn,
-  userIdValidation,
   updateUserValidation,
   createFilmValidation,
   filmIdValidation,
