@@ -6,12 +6,12 @@ const {
 } = require('../middlewares/validations');
 
 const {
-  addMovie, getMovies, deleteMovie,
+  createMovie, getMovies, deleteMovie,
 } = require('../controllers/movies');
 
 router.get('/', getMovies);
 
-router.post('/', createFilmValidation, addMovie);
+router.post('/', createFilmValidation, createMovie);
 
 router.delete('/:movieId', filmIdValidation, deleteMovie);
 

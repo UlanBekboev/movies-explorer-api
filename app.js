@@ -8,7 +8,7 @@ const cookieParser = require('cookie-parser');
 const rateLimit = require('express-rate-limit');
 const NotFoundError = require('./errors/not-found-err');
 const auth = require('./middlewares/auth');
-const { login, createUser } = require('./controllers/users');
+const { login, createUser, logout } = require('./controllers/users');
 const rootRouter = require('./routes/index');
 const { SERVER_PORT, DB } = require('./utils/config');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
@@ -59,6 +59,7 @@ app.use(cookieParser());
 
 app.post('/signin', signIn, login);
 app.post('/signup', signUp, createUser);
+app.post('/signout', auth, logout);
 
 app.use(auth);
 app.use('/', rootRouter);
